@@ -43,7 +43,7 @@ function PriceTag() {
 
 function PriceTagPreview() {
   return (
-    <section className="w-[220px] h-full shrink-0">
+    <section className="w-[250px] h-full shrink-0">
       <h2 className="mb-6 text-center text-label font-bold">
         ตัวอย่างป้ายราคา
       </h2>
@@ -99,7 +99,7 @@ function WebsiteInfo() {
 
 export default function Homepage() {
   return (
-    <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-layout p-layout max-lg:grid-cols-1">
+    <div className="grid grid-cols-[250px_minmax(0,1fr)] gap-layout p-layout max-lg:grid-cols-1">
       <PriceTagPreview />
 
       <div className="min-w-0">
