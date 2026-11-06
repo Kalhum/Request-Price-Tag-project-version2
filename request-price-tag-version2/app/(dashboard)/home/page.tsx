@@ -48,8 +48,8 @@ function PriceTagPreview() {
         ตัวอย่างป้ายราคา
       </h2>
 
-      <div className="card-default flex max-h-[470px] flex-col gap-2 overflow-hidden p-2">
-        {[1, 2, 3, 4].map((item) => (
+      <div className="card-default flex max-h-[470px] flex-col gap-2 overflow-auto p-2">
+        {[1, 2, 3, 4,5,6,7,8].map((item) => (
           <PriceTag key={item} />
         ))}
       </div>

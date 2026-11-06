@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: "/report", label: "Report and Reprint", icon: BarChart3 },
 ];
 
-function isActive(pathname, href) {
+function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
