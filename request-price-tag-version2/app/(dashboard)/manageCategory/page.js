@@ -1,9 +1,5 @@
 "use client";
 
-
-import Navbar from "../../components/navbar/page.js";
-import Sidebar from "../../components/sidebar/page.js";
-
 function headercontentBody() {
   return (
     <section className="w-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -26,15 +22,8 @@ function headercontentBody() {
 
 export default function Homepage() {
   return (
-    <main className="flex min-h-screen bg-[#f1f2f7]">
-      <Sidebar />
-
-      <div className="min-w-0 flex-1  ">
-        <Navbar />
-        <div className="flex w-full items-center justify-center px-6 py-5">
-          {headercontentBody()}
-        </div>
-      </div>
-    </main>
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#f1f2f7] px-6 py-5">
+      {headercontentBody()}
+    </div>
   );
 }

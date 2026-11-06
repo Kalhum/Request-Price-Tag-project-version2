@@ -1,11 +1,6 @@
 "use client";
 
-import Navbar from "../../components/navbar/page.js";
-import Sidebar from "../../components/sidebar/page.js";
-
-
-
-function PriceTag({ index }) {
+function PriceTag() {
   return (
     <div className="w-full border-2 border-black bg-white p-2 text-black">
       <div className="flex justify-between text-[9px]">
@@ -55,7 +50,7 @@ function PriceTagPreview() {
 
       <div className="card-default flex max-h-[470px] flex-col gap-2 overflow-hidden p-2">
         {[1, 2, 3, 4].map((item) => (
-          <PriceTag key={item} index={item} />
+          <PriceTag key={item} />
         ))}
       </div>
     </section>
@@ -104,21 +99,13 @@ function WebsiteInfo() {
 
 export default function Homepage() {
   return (
-    <main className="flex min-h-screen bg-surface">
-      <Sidebar />
+    <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-layout p-layout max-lg:grid-cols-1">
+      <PriceTagPreview />
 
-      <div className="min-w-0 flex-1">
-        <Navbar />
-
-        <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-layout p-layout max-lg:grid-cols-1">
-          <PriceTagPreview />
-
-          <div className="min-w-0">
-            <WelcomeBanner />
-            <WebsiteInfo />
-          </div>
-        </div>
+      <div className="min-w-0">
+        <WelcomeBanner />
+        <WebsiteInfo />
       </div>
-    </main>
+    </div>
   );
 }
