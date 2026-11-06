@@ -22,7 +22,7 @@ function headercontentBody() {
 
 export default function Homepage() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-[#f1f2f7] px-6 py-5">
+    <div className="flex bg-[#f1f2f7] px-6 py-5">
       {headercontentBody()}
     </div>
   );
