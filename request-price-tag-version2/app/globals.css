@@ -1,0 +1,160 @@
+
+@import "tailwindcss";
+
+/* =========================================
+   1. DESIGN TOKENS
+   กำหนดค่ามาตรฐานของระบบ
+========================================= */
+
+@theme {
+
+  /* ---------- System Colors ---------- */
+
+  --color-primary: #00599e;
+  --color-secondary: #008fe6;
+
+  --color-danger: #f52222;
+  --color-danger-light: #fecdd3;
+
+  --color-success: #059669;
+  --color-success-light: #34d399;
+
+  --color-warning: #d97706;
+  --color-warning-light: #fde68a;
+
+  --color-black: #000000;
+  --color-gray: #475569;
+  --color-white: #f8f9ff;
+
+
+  /* ---------- Login Decorative Gradient ---------- */
+
+  --color-ball-start: #079bf5;
+  --color-ball-mid: #067bc2;
+  --color-ball-end: #045a8f;
+
+
+  /* ---------- Typography ---------- */
+
+  --text-heading: 1.5rem;
+  --text-subheading: 1.25rem;
+  --text-body: 1rem;
+  --text-label: 0.875rem;
+  --text-caption: 0.75rem;
+
+
+  /* ---------- Border Radius ---------- */
+
+  --radius-button: 0.5rem;
+  --radius-input: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-panel: 1rem;
+
+
+  /* ---------- Spacing ---------- */
+
+  --spacing-layout: 1.5rem;
+  --spacing-section: 2rem;
+  --spacing-card: 1.25rem;
+
+
+  /* ---------- Shadow ---------- */
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-modal: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+}
+
+
+
+@theme inline {
+  /* Default Font */
+  --font-sans: var(--font-prompt-local);
+
+  /* Custom Fonts */
+  --font-prompt: var(--font-prompt-local);
+  --font-roboto: var(--font-roboto-local);
+}
+
+
+/* =========================================
+   2. GLOBAL DEFAULT
+   กำหนดค่าพื้นฐานของเว็บไซต์
+========================================= */
+
+
+@layer base {
+  body {
+    @apply bg-white text-black;
+    font-family: var(--font-prompt-local), sans-serif;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+
+
+/* =========================================
+   3. REUSABLE COMPONENTS
+   สร้าง Class สำหรับเรียกใช้ซ้ำ
+========================================= */
+
+@layer components {
+
+  /* ---------- Buttons ---------- */
+
+  .btn-primary {
+    @apply rounded-button bg-primary px-5 py-2.5
+           text-white transition hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply rounded-button bg-secondary px-5 py-2.5
+           text-white transition hover:opacity-90;
+  }
+
+  .btn-danger {
+    @apply rounded-button bg-danger px-5 py-2.5
+           text-white transition hover:opacity-90;
+  }
+
+
+  /* ---------- Input ---------- */
+
+  .input-default {
+    @apply w-full rounded-input border border-gray-300
+           bg-white px-3 py-2.5 text-gray
+           outline-none transition
+           focus:border-secondary focus:ring-2
+           focus:ring-secondary/20;
+  }
+
+
+  /* ---------- Card ---------- */
+
+  .card-default {
+    @apply rounded-card bg-white p-card shadow-card;
+  }
+
+
+  /* ---------- Decorative Gradient ---------- */
+
+  .bg-ball-gradient {
+    background-image: linear-gradient(
+      to bottom right,
+      var(--color-ball-start) 0%,
+      var(--color-ball-mid) 50%,
+      var(--color-ball-end) 100%
+    );
+  }
+
+}
