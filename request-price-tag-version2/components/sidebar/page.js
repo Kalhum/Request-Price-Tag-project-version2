@@ -25,7 +25,7 @@ export default function Sidebar() {
         color: "#FFFFFF",
       }}
       className="
-        flex h-full min-h-0 w-[20%]
+        flex min-h-0 w-[20%]
         flex-col overflow-y-auto
         px-[9px] py-5
       "
