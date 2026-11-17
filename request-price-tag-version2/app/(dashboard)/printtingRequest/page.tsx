@@ -121,12 +121,11 @@ export default function PrinttingRequestPage() {
     const requestIds = selectedIds.includes(printingRequest.id)
       ? selectedIds
       : [printingRequest.id];
-    const job = await createPrintJob({
+    await createPrintJob({
       requestIds,
       copies: copiesToPrint,
       printer: printerToUse,
     });
-    if (job) window.print();
   }
 
   const requestColumns: TableColumn<PrintingRequest>[] = [

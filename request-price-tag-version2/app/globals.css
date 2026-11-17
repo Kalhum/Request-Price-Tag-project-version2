@@ -166,11 +166,13 @@
 }
 
 @media print {
+  /* ── Page setup ── */
   @page {
     size: A4 portrait;
-    margin: 6mm;
+    margin: 8mm;
   }
 
+  /* ── 1. ซ่อนทุกอย่างในหน้าก่อน ── */
   body {
     background: white !important;
     color: black !important;
@@ -180,11 +182,15 @@
     visibility: hidden !important;
   }
 
+  /* ── 2. โชว์เฉพาะ modal backdrop และทุกอย่างข้างใน ── */
+  .print-modal-backdrop,
+  .print-canvas-body,
   .print-price-tag-sheet,
   .print-price-tag-sheet * {
     visibility: visible !important;
   }
 
+  /* ── 3. Reset layout ของ modal backdrop ── */
   .print-modal-backdrop {
     position: static !important;
     display: block !important;
@@ -192,28 +198,78 @@
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    inset: auto !important;
+    z-index: auto !important;
   }
 
+  /* ── 4. Reset transform ทั้งหมด (ยกเลิก zoom/rotate) ── */
   .print-modal-backdrop * {
     transform: none !important;
+    transition: none !important;
   }
 
+  /* ── 5. ซ่อน toolbar, sidebar, footer bar ── */
   .print-modal-controls {
     display: none !important;
   }
 
+  /* ── 6. Reset body flex container ── */
+  .print-canvas-body {
+    display: block !important;
+    overflow: visible !important;
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    background: white !important;
+  }
+
+  /* ── 7. Reset main scroll area ── */
+  .print-modal-backdrop main {
+    display: block !important;
+    overflow: visible !important;
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  /* ── 8. Reset ทุก div wrapper ภายใน main ── */
+  .print-modal-backdrop main > div {
+    display: block !important;
+    overflow: visible !important;
+    transform: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    width: 100% !important;
+  }
+
+  /* ── 9. แต่ละหน้า A4 (wrapper) ── */
+  .print-modal-backdrop main > div > div {
+    display: block !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* ── 10. แผ่น A4 จริง ── */
   .print-price-tag-sheet {
     position: static !important;
     display: block !important;
     width: 100% !important;
     max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
+    padding: 6mm !important;
     box-shadow: none !important;
     background: white !important;
     color: black !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
   }
 
+  /* ── 11. page break ระหว่างหน้า ── */
   .print-page {
     position: static !important;
     display: block !important;
@@ -225,9 +281,9 @@
     break-inside: avoid !important;
     box-shadow: none !important;
     margin: 0 !important;
-    padding: 4mm !important;
     box-sizing: border-box !important;
     background: white !important;
+    overflow: visible !important;
   }
 
   .print-page:last-child {
@@ -235,10 +291,12 @@
     break-after: auto !important;
   }
 
+  /* ── 12. ป้ายราคาแต่ละใบ ── */
   .print-price-tag {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    overflow: visible !important;
   }
 }

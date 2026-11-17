@@ -14,10 +14,10 @@ export default function Footer() {
         </p>
 
         {/* ข้อมูลติดต่อ */}
-        <div className="flex flex-col gap-0.5 text-label sm:text-right sm:text-body sm:shrink-0">
-          <p>โทร. 0-2308-0703</p>
-          <p>โทรสาร 0-2308-0701-2</p>
-          <p>Email: info@sahalawson.co.th</p>
+        <div className="flex flex-col gap-0.5 text-right text-label sm:text-body sm:shrink-0">
+          <p className="text-right">โทร. 0-2308-0703</p>
+          <p className="text-right">โทรสาร 0-2308-0701-2</p>
+          <p className="text-right">Email: info@sahalawson.co.th</p>
         </div>
       </div>
     </footer>
