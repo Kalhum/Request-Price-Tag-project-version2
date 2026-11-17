@@ -88,11 +88,11 @@ function PriceTagPreview({
   priceTag: HomeContent["priceTag"];
 }) {
   return (
-    <section className="card-default p-5">
-      <h2 className="mb-4 text-subheading font-bold text-primary">
+    <section className="card-default min-w-0 p-4 sm:p-5">
+      <h2 className="mb-4 text-base font-bold text-primary sm:text-subheading">
         ตัวอย่างป้ายราคา
       </h2>
-      <div className="mx-auto max-w-sm rounded-card border border-slate-200 bg-surface p-3">
+      <div className="mx-auto max-w-sm rounded-card border border-slate-200 bg-surface p-2 sm:p-3">
         <PriceTag priceTag={priceTag} />
       </div>
     </section>
@@ -105,15 +105,15 @@ function WelcomeBanner({
   content: HomeContent;
 }) {
   return (
-    <section className="rounded-card bg-linear-to-r from-primary to-secondary p-6 text-white shadow-card sm:p-8">
+    <section className="rounded-card bg-linear-to-r from-primary to-secondary p-4 text-white shadow-card sm:p-8">
       <p className="text-sm font-medium text-white/80">SAHA LAWSON</p>
-      <h1 className="mt-1 text-heading font-semibold sm:text-3xl">
+      <h1 className="mt-1 text-xl font-semibold leading-tight sm:text-3xl">
         Request Price Tags to SAHA Lawson
       </h1>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-white/90 sm:text-base">
         {content.description}
       </p>
-      <p className="mt-5 inline-flex flex-wrap items-center gap-x-1 gap-y-1 rounded-lg bg-white/10 px-3 py-2 text-sm text-white">
+      <p className="mt-5 inline-flex max-w-full flex-wrap items-center gap-x-1 gap-y-1 rounded-lg bg-white/10 px-3 py-2 text-sm text-white">
         <span>Tier list เดือน {content.tierListMonth}</span>
         <span className="text-white/75">({content.tierListDisclaimer})</span>
       </p>
@@ -123,8 +123,10 @@ function WelcomeBanner({
 
 function WebsiteInfo({ websites }: { websites: string[] }) {
   return (
-    <section className="card-default p-5">
-      <h2 className="text-subheading font-bold text-primary">ที่อยู่เว็บไซต์</h2>
+    <section className="card-default min-w-0 p-4 sm:p-5">
+      <h2 className="text-base font-bold text-primary sm:text-subheading">
+        ที่อยู่เว็บไซต์
+      </h2>
       <p className="mt-1 text-sm text-gray">SAHA LAWSON Request Price Tag</p>
       <ul className="mt-4 space-y-3">
         {websites.map((website) => (
@@ -169,8 +171,8 @@ export default function Homepage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col gap-6 p-layout">
-      <div className="flex-1 space-y-6">
+    <div className="flex min-h-full flex-col gap-4 p-4 sm:gap-6 sm:p-layout">
+      <div className="min-w-0 flex-1 space-y-4 sm:space-y-6">
         {error && (
           <p
             role="alert"
@@ -202,12 +204,12 @@ export default function Homepage() {
               <Link
                 key={href}
                 href={href}
-                className="card-default group flex min-h-28 items-start gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                className="card-default group flex min-h-28 min-w-0 items-start gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon aria-hidden="true" className="h-5 w-5" />
                 </span>
-                <span>
+                <span className="min-w-0">
                   <span className="block font-semibold text-primary group-hover:underline">
                     {label}
                   </span>
@@ -220,7 +222,7 @@ export default function Homepage() {
           </nav>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2">
           <PriceTagPreview priceTag={content.priceTag} />
           <WebsiteInfo websites={content.websites} />
         </div>
