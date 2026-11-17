@@ -8,9 +8,9 @@ import { BarChart3, FolderOpen, Home, PlusCircle, Printer } from "lucide-react";
 const NAV_ITEMS = [
   { href: "/home", label: "home", icon: Home },
   { href: "/manageCategory", label: "Manage Category", icon: FolderOpen },
-  { href: "/create-request", label: "Create Request", icon: PlusCircle },
-  { href: "/printing-request", label: "Printting Request", icon: Printer },
-  { href: "/printing-category", label: "Printting Category", icon: Printer },
+  { href: "/createRequest", label: "Create Request", icon: PlusCircle },
+  { href: "/printtingRequest", label: "Printting Request", icon: Printer },
+  { href: "/printingCategory", label: "Printting Category", icon: Printer },
   { href: "/report", label: "Report and Reprint", icon: BarChart3 },
 ];
 
@@ -22,7 +22,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="flex w-full items-stretch bg-white shadow-sm">
+    <header className="sticky top-0 z-999 flex w-full items-stretch bg-white shadow-sm">
       {/* เมนู: เลื่อนแนวนอนได้เมื่อจอแคบ */}
       <nav
         aria-label="เมนูหลัก"
