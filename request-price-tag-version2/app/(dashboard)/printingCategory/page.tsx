@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import Button from "@/components/Button";
 import Footer from "../../../components/Footer";
+import PrintSheetModal from "@/components/price-tag/PrintSheetModal";
 import { usePrintingCategories } from "@/hook/use-printing-categories";
 import type { BranchId } from "@/types/branch";
+import type { PrintingRequest } from "@/types/printing";
 
 export default function PrintingCategoryPage() {
   const {
@@ -29,23 +31,29 @@ export default function PrintingCategoryPage() {
     createJob,
     uploadFile: submitCategoryFile,
   } = usePrintingCategories();
+
   const categories = data?.categories;
   const categoryCount = categories?.length ?? 0;
   const previewProducts = data?.previewProducts ?? [];
-  const [selectedCategoryOverride, setSelectedCategoryOverride] =
-    useState<string[] | null>(null);
-  const selectedCategories =
-    selectedCategoryOverride ?? data?.defaultCategoryIds ?? [];
+
+  // ค่าเริ่มต้นไม่เลือก Checkbox ใดๆ ตามที่ผู้ใช้ต้องการ
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [branchMode, setBranchMode] = useState<"none" | "branch">("branch");
   const [englishEnabled, setEnglishEnabled] = useState(false);
   const [englishText, setEnglishText] = useState("");
   const [message, setMessage] = useState("");
-  const [previewBranchId, setPreviewBranchId] = useState<BranchId | null>(null);
-  const showPreview = previewBranchId === branchId;
-  const setShowPreview = (show: boolean) =>
-    setPreviewBranchId(show ? branchId : null);
+
+  // State สำหรับเปิด PrintSheetModal ให้เหมือนหน้า printtingRequest
+  const [activePrintRequest, setActivePrintRequest] = useState<PrintingRequest | null>(null);
+
+  const effectivePreviewProducts = useMemo(() => {
+    return previewProducts.map((p) => ({
+      ...p,
+      english: englishEnabled && englishText.trim() ? englishText.trim() : p.english,
+    }));
+  }, [previewProducts, englishEnabled, englishText]);
 
   const filteredCategories = useMemo(
     () =>
@@ -54,39 +62,38 @@ export default function PrintingCategoryPage() {
       ),
     [categories, search],
   );
+
   const allVisibleSelected =
     filteredCategories.length > 0 &&
     filteredCategories.every((category) => selectedCategories.includes(category.id));
 
   function toggleCategory(categoryId: string) {
-    setSelectedCategoryOverride((current) => {
-      const selected = current ?? data?.defaultCategoryIds ?? [];
-      return selected.includes(categoryId)
-        ? selected.filter((item) => item !== categoryId)
-        : [...selected, categoryId];
-    });
+    setSelectedCategories((current) =>
+      current.includes(categoryId)
+        ? current.filter((item) => item !== categoryId)
+        : [...current, categoryId],
+    );
     setMessage("");
   }
 
   function toggleVisibleCategories() {
-    setSelectedCategoryOverride((current) => {
-      const selected = current ?? data?.defaultCategoryIds ?? [];
-      return allVisibleSelected
-        ? selected.filter(
+    setSelectedCategories((current) =>
+      allVisibleSelected
+        ? current.filter(
             (item) => !filteredCategories.some((category) => category.id === item),
           )
         : [
             ...new Set([
-              ...selected,
+              ...current,
               ...filteredCategories.map((category) => category.id),
             ]),
-          ];
-    });
+          ],
+    );
   }
 
   function selectAllCategories() {
     const categoryIds = (categories ?? []).map((category) => category.id);
-    setSelectedCategoryOverride(
+    setSelectedCategories(
       selectedCategories.length === categoryIds.length ? [] : categoryIds,
     );
     setMessage("");
@@ -127,8 +134,15 @@ export default function PrintingCategoryPage() {
       englishText,
     });
     if (!job) return;
+
     setMessage(`สร้างรายการพิมพ์ตัวอย่าง ${job.documentNumber} แล้ว`);
-    setShowPreview(true);
+    setActivePrintRequest({
+      id: job.jobId,
+      documentNumber: job.documentNumber,
+      quantity: job.productCount,
+      date: new Date().toISOString(),
+      branchId: branchMode === "branch" ? branchId : ("P0000" as BranchId),
+    });
   }
 
   function uploadSelectedFile() {
@@ -137,29 +151,31 @@ export default function PrintingCategoryPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col gap-2 bg-surface p-4 sm:p-6">
-      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-5 py-4 text-white shadow-card sm:px-6">
-        <h1 className="text-heading font-bold sm:text-3xl">
+    <div className="flex min-h-full flex-col gap-3 bg-surface p-3 sm:p-4 md:p-6">
+      {/* ── Header Banner ── */}
+      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-4 py-4 text-white shadow-card sm:px-6 sm:py-5">
+        <h1 className="text-xl font-bold leading-tight sm:text-heading md:text-3xl">
           ส่วนของการพิมพ์ป้ายราคาตามหมวดหมู่สินค้า
         </h1>
-        <p className="mt-1 flex items-center gap-2 text-label text-white/85">
+        <p className="mt-1 flex items-center gap-2 text-label text-white/85 sm:text-body">
           <Info className="h-4 w-4 shrink-0" />
           สามารถเลือกตามหมวดหมู่สินค้า หรือ อัปโหลดไฟล์ได้
         </p>
       </header>
 
+      {/* ── Category Selection Card ── */}
       <section className="card-default p-4 sm:p-5">
         <div className="flex flex-col gap-4 border-b border-slate-100 pb-3 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-bold text-slate-800">
+              <h2 className="text-body font-bold text-slate-800 sm:text-subheading">
                 หมวดหมู่สินค้าทั้งหมด
               </h2>
               <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-white">
                 เลือกแล้ว {selectedCategories.length} จาก {categoryCount} หมวด
               </span>
             </div>
-            <p className="mt-1 text-caption text-gray">
+            <p className="mt-1 text-caption text-gray sm:text-label">
               ทำเครื่องหมายถูกในช่องสี่เหลี่ยมเพื่อเลือกหมวดหมู่ที่ต้องการสั่งพิมพ์ป้ายราคา
             </p>
           </div>
@@ -195,7 +211,7 @@ export default function PrintingCategoryPage() {
             </button>
             <button
               type="button"
-              onClick={() => setSelectedCategoryOverride([])}
+              onClick={() => setSelectedCategories([])}
               className="inline-flex items-center gap-2 rounded-input border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-gray hover:bg-slate-50"
             >
               <X className="h-4 w-4" />
@@ -254,10 +270,11 @@ export default function PrintingCategoryPage() {
         </div>
       </section>
 
+      {/* ── File Upload & Options Card ── */}
       <section className="card-default p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3">
           <FileUp className="h-4 w-4 text-primary" />
-          <h2 className="font-bold text-slate-800">
+          <h2 className="text-body font-bold text-slate-800 sm:text-subheading">
             หรือ อัปโหลดไฟล์ &amp; ตัวเลือกเพิ่มเติม
           </h2>
           <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-gray">
@@ -360,6 +377,7 @@ export default function PrintingCategoryPage() {
         )}
       </section>
 
+      {/* ── Actions Card ── */}
       <section className="card-default flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-2">
           <span className="mt-0.5 rounded-input bg-sky-50 p-1.5 text-secondary">
@@ -367,7 +385,7 @@ export default function PrintingCategoryPage() {
           </span>
           <div>
             <p
-              className={`text-sm font-semibold ${
+              className={`text-body font-semibold ${
                 selectedCategories.length > 0 ? "text-success" : "text-warning"
               }`}
             >
@@ -375,15 +393,15 @@ export default function PrintingCategoryPage() {
                 ? `เลือกหมวดหมู่แล้ว ${selectedCategories.length} หมวด`
                 : "ยังไม่ได้เลือกหมวดหมู่สินค้า"}
             </p>
-            <p className="text-caption text-gray">
-              เครื่องพิมพ์เป้าหมาย: Zebra ZD420 (เลเบลเอทิเคทเซียร์ 1)
+            <p className="text-label text-gray">
+              เครื่องพิมพ์เป้าหมาย: Zebra ZD420 (สติกเกอร์บาร์โค้ด) [แนะนำ]
             </p>
           </div>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Button
             onClick={() => {
-              setSelectedCategoryOverride([]);
+              setSelectedCategories([]);
               setMessage("");
             }}
             variant="outline"
@@ -417,121 +435,20 @@ export default function PrintingCategoryPage() {
 
       <Footer />
 
-      {showPreview && (
-        <div
-          className="print-modal-backdrop fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-3 sm:p-6"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setShowPreview(false);
-          }}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="category-print-preview-title"
-            className="flex max-h-[94dvh] w-full max-w-6xl flex-col overflow-hidden rounded-card bg-white shadow-modal"
-          >
-            <div className="flex shrink-0 items-center justify-between bg-slate-900 px-4 py-3 text-white">
-              <h2
-                id="category-print-preview-title"
-                className="flex items-center gap-2 font-semibold"
-              >
-                <Printer className="h-4 w-4 text-red-400" />
-                ตัวอย่างก่อนพิมพ์ — {selectedCategories.length} หมวดหมู่
-              </h2>
-              <button
-                type="button"
-                aria-label="ปิดตัวอย่างพิมพ์"
-                onClick={() => setShowPreview(false)}
-                className="rounded-md p-1.5 text-slate-300 hover:bg-slate-700 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-auto bg-[#3b3d3f] p-3 sm:p-5">
-              <div className="print-price-tag-sheet mx-auto max-w-5xl bg-white p-3 sm:p-5">
-                <div className="mb-3 flex justify-between border-b border-dashed border-slate-300 pb-2 text-[9px] text-slate-500">
-                  <span>LAWSON 108 STANDARD PRICE TAG TEMPLATE (3xN A4 STICKER)</span>
-                  <span>
-                    {branchMode === "branch"
-                      ? `BRANCH: ${branchId}`
-                      : "NO BRANCH"}{" "}
-                    | {selectedCategories.length} CATEGORIES
-                  </span>
-                </div>
-                <div className="mb-3 flex flex-wrap gap-1">
-                  {selectedCategories.map((categoryId) => (
-                    <span
-                      key={categoryId}
-                      className="rounded bg-slate-100 px-2 py-1 text-[9px] text-slate-600"
-                    >
-                      {(categories ?? []).find((category) => category.id === categoryId)?.name}
-                    </span>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-                  {Array.from({ length: 12 }, (_, index) => {
-                    const product = previewProducts[index % previewProducts.length];
-                    if (!product) return null;
-                    return (
-                      <article
-                        key={`${product.barcode}-${index}`}
-                        className="print-price-tag"
-                      >
-                        <div className="flex justify-between text-[9px]">
-                          <span>04/11/2026</span>
-                          <span>{branchId}</span>
-                        </div>
-                        <div className="mt-1 h-8 bg-[repeating-linear-gradient(90deg,#111_0px,#111_1px,transparent_1px,transparent_3px,#111_3px,#111_5px,transparent_5px,transparent_7px)]" />
-                        <div className="flex justify-between text-[8px]">
-                          <span>14 D</span>
-                          <span>NR</span>
-                          <span>17270144</span>
-                          <span>                          {product.barcode}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="flex h-7 w-8 items-center justify-center border-2 border-black text-xs">
-                            O
-                          </span>
-                          <span className="text-[36px] font-black leading-none">
-                            {product.price}
-                            <span className="text-base">
-                              .00
-                            </span>
-                          </span>
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-[9px] font-semibold leading-tight">
-                          {product.name}
-                        </p>
-                        <p className="line-clamp-1 text-[8px] leading-tight text-slate-600">
-                          {englishEnabled ? englishText || product.english : product.english}
-                        </p>
-                      </article>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            <div className="print-modal-controls flex shrink-0 justify-end gap-2 border-t border-slate-200 bg-white p-4">
-              <button
-                type="button"
-                onClick={() => setShowPreview(false)}
-                className="inline-flex items-center gap-2 rounded-button border border-slate-200 px-4 py-2 text-sm font-semibold text-gray hover:bg-slate-50"
-              >
-                <X className="h-4 w-4" />
-                ปิด
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-              >
-                <Check className="h-4 w-4" />
-                ยืนยันการพิมพ์
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      {/* ── Modal พรีวิวป้ายราคาและสั่งพิมพ์ (รูปแบบเดียวกับหน้า printtingRequest) ── */}
+      <PrintSheetModal
+        isOpen={Boolean(activePrintRequest)}
+        onClose={() => setActivePrintRequest(null)}
+        printingRequest={activePrintRequest}
+        products={effectivePreviewProducts}
+        branchId={branchMode === "branch" ? branchId : "P0000"}
+        onConfirmPrint={async () => {
+          // print job ถูกสร้างแล้วผ่าน createJob ใน printTags()
+        }}
+        isLoading={jobLoading}
+        errorMessage={jobError}
+        totalQuantity={activePrintRequest?.quantity}
+      />
     </div>
   );
 }
