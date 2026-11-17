@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import PriceTag from "./PriceTag";
+import { generatePrintHtml, printDocumentDirectly } from "./printHtml";
 import type { PrintingProduct, PrintingRequest } from "@/types/printing";
 
 export interface PrintSheetModalProps {
@@ -186,7 +187,7 @@ function PageThumbnail({
           LAWSON PRICE TAG
         </div>
 
-        {/* Grid 3 × 8 ป้ายราคา */}
+        {/* Grid 3 × 8 ป้ายราคา (แสดงตามสินค้าจริง ที่เหลือเป็นช่องว่างเส้นประ) */}
         <div
           style={{
             display: "grid",
@@ -195,8 +196,20 @@ function PageThumbnail({
           }}
         >
           {Array.from({ length: TAGS_PER_PAGE }, (_, idx) => {
-            const product = page.products[idx % Math.max(page.products.length, 1)];
-            if (!product) return <div key={idx} style={{ height: "17px" }} />;
+            const product = page.products[idx];
+            if (!product) {
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    height: "17px",
+                    border: "0.5px dashed #cbd5e1",
+                    boxSizing: "border-box",
+                    background: "#fafafa",
+                  }}
+                />
+              );
+            }
             return <MiniPriceTag key={idx} product={product} />;
           })}
         </div>
@@ -332,7 +345,26 @@ export default function PrintSheetModal({
   const fileName = `${printingRequest.documentNumber || "Price_Tag_Sheet"}.pdf`;
   const currentZoom = isFitWidth ? 130 : zoom;
 
-  const handlePrint = async () => await onConfirmPrint(copies, printer);
+  const getPrintHtmlContent = () =>
+    generatePrintHtml({
+      printingRequest: printingRequest!,
+      products: effectiveProducts,
+      branchId,
+      totalQuantity: totalTags,
+      showCutGuides,
+    });
+
+  const handlePrint = async () => {
+    // 1. บันทึก Print Job ลงระบบ
+    await onConfirmPrint(copies, printer);
+    // 2. สั่งพิมพ์ผ่าน Hidden iframe โดยตรง (เปิด Print Dialog ของเบราว์เซอร์ทันที ไม่เปิดแท็บ about:blank)
+    printDocumentDirectly(getPrintHtmlContent());
+  };
+
+  const handleDownload = () => {
+    // เปิด Print Dialog เพื่อให้ผู้ใช้เลือก "บันทึกเป็น PDF" (Save as PDF) โดยมีชื่อไฟล์และหลายหน้าเป๊ะ
+    printDocumentDirectly(getPrintHtmlContent());
+  };
 
   const scrollToPage = (pageNum: number) => {
     setActivePageIndex(pageNum);
@@ -469,9 +501,9 @@ export default function PrintSheetModal({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={handlePrint}
+            onClick={handleDownload}
             className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
-            title="ดาวน์โหลด"
+            title="บันทึกเป็น PDF (เลือกปลายทาง 'Save as PDF')"
           >
             <Download className="h-4 w-4" />
           </button>
@@ -498,7 +530,7 @@ export default function PrintSheetModal({
       {/* =====================================================================
           2. BODY — Sidebar Thumbnails + PDF Canvas
       ===================================================================== */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="print-canvas-body flex flex-1 overflow-hidden">
 
         {/* ── SIDEBAR THUMBNAILS ── */}
         {showSidebar && (
@@ -551,14 +583,19 @@ export default function PrintSheetModal({
                   className="print-page print-price-tag-sheet bg-white text-black shadow-[0_2px_20px_rgba(0,0,0,0.5)]"
                   style={{
                     width: "210mm",
-                    minHeight: "297mm",
-                    padding: "7mm 6mm",
+                    height: "297mm",
+                    maxHeight: "297mm",
+                    padding: "4mm 5mm 3mm 5mm",
                     boxSizing: "border-box",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                   }}
                 >
                   {/* Header */}
-                  <div className="mb-2 flex items-center justify-between border-b border-dashed border-slate-300 pb-1.5 text-[9px] text-slate-500">
-                    <span className="font-semibold">
+                  <div className="flex items-center justify-between border-b border-dashed border-slate-300 pb-1 text-[8.5px] text-slate-500 leading-tight">
+                    <span className="font-semibold text-black">
                       LAWSON 108 STANDARD PRICE TAG TEMPLATE (3x8 A4 SHEET)
                     </span>
                     <span>
@@ -569,34 +606,88 @@ export default function PrintSheetModal({
                     </span>
                   </div>
 
-                  {/* Grid ป้ายราคา 3 × 8 */}
-                  <div className="grid grid-cols-3 gap-x-2.5 gap-y-2 justify-items-center">
-                    {page.products.map((product, index) => (
-                      <div
-                        key={`${product.barcode}-${page.pageNumber}-${index}`}
-                        className={`relative ${
-                          showCutGuides
-                            ? "p-[1px] border border-dashed border-slate-300 rounded-[2px]"
-                            : ""
-                        }`}
-                      >
-                        <PriceTag
-                          product={product}
-                          branchId={branchId}
-                          date={formattedDate}
-                          tierLetter="C"
+                  {/* Grid ป้ายราคา 3 × 8 (24 ช่อง) */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, 64mm)",
+                      gridAutoRows: "34mm",
+                      rowGap: "0.8mm",
+                      columnGap: "3mm",
+                      justifyContent: "center",
+                      margin: "1mm 0",
+                    }}
+                  >
+                    {Array.from({ length: TAGS_PER_PAGE }, (_, index) => {
+                      const product = page.products[index];
+                      if (product) {
+                        return (
+                          <div
+                            key={`${product.barcode}-${page.pageNumber}-${index}`}
+                            className="relative flex items-center justify-center"
+                            style={{
+                              width: "64mm",
+                              height: "34mm",
+                              boxSizing: "border-box",
+                              breakInside: "avoid",
+                              pageBreakInside: "avoid",
+                            }}
+                          >
+                            <PriceTag
+                              product={product}
+                              branchId={branchId}
+                              date={formattedDate}
+                              tierLetter="C"
+                              className={
+                                showCutGuides
+                                  ? "outline outline-1 outline-dashed outline-slate-300"
+                                  : ""
+                              }
+                            />
+                            {showCutGuides && (
+                              <span className="absolute -top-1 -left-1 text-[8px] text-slate-400 select-none leading-none z-10">
+                                +
+                              </span>
+                            )}
+                          </div>
+                        );
+                      }
+                      if (showCutGuides) {
+                        return (
+                          <div
+                            key={`empty-${page.pageNumber}-${index}`}
+                            className="relative flex items-center justify-center border border-dashed border-slate-200"
+                            style={{
+                              width: "64mm",
+                              height: "34mm",
+                              boxSizing: "border-box",
+                              background: "#fafafa",
+                              breakInside: "avoid",
+                              pageBreakInside: "avoid",
+                            }}
+                          >
+                            <span className="text-[9px] text-slate-300 select-none">
+                              ช่องว่าง {index + 1}
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div
+                          key={`empty-${page.pageNumber}-${index}`}
+                          style={{
+                            width: "64mm",
+                            height: "34mm",
+                            breakInside: "avoid",
+                            pageBreakInside: "avoid",
+                          }}
                         />
-                        {showCutGuides && (
-                          <span className="absolute -top-1 -left-1 text-[8px] text-slate-400 select-none leading-none">
-                            +
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Footer */}
-                  <div className="mt-4 flex justify-between border-t border-slate-200 pt-1.5 text-[8px] text-slate-400">
+                  <div className="flex justify-between border-t border-slate-200 pt-1 text-[7.5px] text-slate-400 leading-tight">
                     <span>* ป้ายราคานี้พิมพ์จากระบบ Request Price Tag System</span>
                     <span>แผ่นที่ {page.pageNumber} จากทั้งหมด {totalPages} แผ่น</span>
                   </div>
@@ -640,8 +731,26 @@ export default function PrintSheetModal({
 
         {errorMessage && <p role="alert" className="text-red-400">{errorMessage}</p>}
 
-        <div>
-          รวมป้าย: <strong className="text-white">{totalTags}</strong> ป้าย ({totalPages} แผ่น)
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-slate-300 mr-2">
+            รวมป้าย: <strong className="text-white">{totalTags}</strong> ป้าย ({totalPages} แผ่น)
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded bg-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/20 hover:text-white transition"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 rounded bg-sky-600 px-3.5 py-1 text-xs font-semibold text-white shadow hover:bg-sky-500 disabled:opacity-50 transition"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>ยืนยันและสั่งพิมพ์ (Print)</span>
+          </button>
         </div>
       </footer>
     </div>
