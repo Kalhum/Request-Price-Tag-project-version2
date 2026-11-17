@@ -224,8 +224,8 @@ export default function ManageCategoryPage() {
 
   return (
     <div className="flex min-h-full flex-col gap-4 bg-surface p-4 sm:p-6">
-      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-5 py-4 text-white shadow-card sm:px-6">
-        <h1 className="text-heading font-bold sm:text-3xl">
+      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-4 py-4 text-white shadow-card sm:px-6">
+        <h1 className="text-xl font-bold leading-tight sm:text-3xl">
           ส่วนของการจัดการประเภทของสินค้า
         </h1>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
@@ -239,7 +239,7 @@ export default function ManageCategoryPage() {
         </div>
       </header>
 
-      <section className="card-default p-5 sm:p-6">
+      <section className="card-default min-w-0 p-4 sm:p-6">
         <div className="mb-5 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2 text-subheading font-bold text-primary">
             <SlidersHorizontal className="h-5 w-5 text-primary" />
@@ -250,8 +250,8 @@ export default function ManageCategoryPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <fieldset className="space-y-3 lg:border-r lg:border-slate-100 lg:pr-6">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <fieldset className="min-w-0 space-y-3 lg:border-r lg:border-slate-100 lg:pr-6">
             <legend className="mb-3 flex items-center gap-2 text-label font-bold text-primary">
               <CloudUpload className="h-4 w-4 text-primary" />
               ประเภทการอัปโหลด :
@@ -279,7 +279,7 @@ export default function ManageCategoryPage() {
           </fieldset>
 
           <div className="space-y-3">
-            <label htmlFor="product-search" className="flex items-center gap-2 text-label font-bold text-primary">
+            <label htmlFor="product-search" className="flex flex-wrap items-center gap-2 text-label font-bold text-primary">
               <Barcode className="h-4 w-4 text-primary" />
               รหัสสินค้า / บาร์โค้ด :
             </label>
@@ -345,7 +345,7 @@ export default function ManageCategoryPage() {
       </section>
 
       <section className="card-default overflow-hidden p-0">
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex min-w-0 flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <h2 className="font-bold text-primary">
               รายการของสินค้าที่จัดประเภทแล้ว
@@ -358,7 +358,7 @@ export default function ManageCategoryPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+            <div className="inline-flex max-w-full flex-wrap rounded-lg border border-slate-200 bg-slate-50 p-1">
               {(
                 [
                   ["all", "ทั้งหมด"],
