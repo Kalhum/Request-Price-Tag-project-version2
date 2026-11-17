@@ -9,6 +9,7 @@ import {
   KeyRound,
   LogOut,
   CheckCircle2,
+  Menu,
   Search,
   X,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { BRANCHES } from "@/types/branch";
 
 export default function Sidebar() {
   const router = useRouter();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [branchSearch, setBranchSearch] = useState("");
   const { branchId, branchName, isReady, selectBranch } = useBranch();
@@ -32,13 +34,15 @@ export default function Sidebar() {
   });
 
   useEffect(() => {
-    if (!isBranchModalOpen) return;
+    if (!isBranchModalOpen && !isMobileSidebarOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsBranchModalOpen(false);
+      if (event.key !== "Escape") return;
+      setIsBranchModalOpen(false);
+      setIsMobileSidebarOpen(false);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isBranchModalOpen]);
+  }, [isBranchModalOpen, isMobileSidebarOpen]);
 
   const handleLogout = () => {
     router.replace("/login");
@@ -46,14 +50,44 @@ export default function Sidebar() {
 
   return (
     <>
+    {!isMobileSidebarOpen && (
+      <button
+        type="button"
+        aria-label="เปิดแถบด้านข้าง"
+        aria-controls="dashboard-sidebar"
+        aria-expanded={false}
+        onClick={() => setIsMobileSidebarOpen(true)}
+        className="fixed left-3 top-2.5 z-[1001] inline-flex h-11 w-11 items-center justify-center rounded-lg bg-white text-primary shadow-sm transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
+      >
+        <Menu className="h-6 w-6" aria-hidden="true" />
+      </button>
+    )}
+    {isMobileSidebarOpen && (
+      <button
+        type="button"
+        aria-label="ปิดแถบด้านข้าง"
+        onClick={() => setIsMobileSidebarOpen(false)}
+        className="fixed inset-0 z-[1000] bg-slate-950/50 lg:hidden"
+      />
+    )}
     <aside
-      className="
-        fixed inset-y-0 left-0 z-40
-        flex h-dvh w-[20%] min-h-0
-        flex-col overflow-y-auto bg-ball-gradient text-white
-        px-[9px] py-5
-      "
+      id="dashboard-sidebar"
+      aria-label="ข้อมูลผู้ใช้และสาขา"
+      className={[
+        "fixed inset-y-0 left-0 z-[1001] flex h-dvh w-[min(20rem,85vw)] min-h-0 flex-col overflow-y-auto bg-ball-gradient px-[9px] py-5 text-white transition-transform duration-300 ease-in-out lg:z-40 lg:w-[20%] lg:translate-x-0",
+        isMobileSidebarOpen
+          ? "visible translate-x-0"
+          : "invisible -translate-x-full lg:visible",
+      ].join(" ")}
     >
+      <button
+        type="button"
+        aria-label="ปิดแถบด้านข้าง"
+        onClick={() => setIsMobileSidebarOpen(false)}
+        className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-lg text-white transition hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:hidden"
+      >
+        <X className="h-5 w-5" aria-hidden="true" />
+      </button>
       {/* BRAND */}
       <div className="mb-8 text-center">
         <Image
@@ -181,7 +215,7 @@ export default function Sidebar() {
     {/* BRANCH MODAL */}
     {isBranchModalOpen && (
       <div
-        className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[1002] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) {
             setIsBranchModalOpen(false);
@@ -246,6 +280,7 @@ export default function Sidebar() {
                     onClick={() => {
                       selectBranch(branch.id);
                       setIsBranchModalOpen(false);
+                      setIsMobileSidebarOpen(false);
                     }}
                     className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition ${
                       isSelected
