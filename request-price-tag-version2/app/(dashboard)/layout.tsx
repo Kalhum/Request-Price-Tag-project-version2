@@ -13,7 +13,7 @@ export default function DashboardLayout({
       <div className="flex h-dvh overflow-hidden bg-surface">
         <Sidebar />
 
-        <div className="ml-[20%] flex h-full min-w-0 flex-1 flex-col">
+        <div className="ml-0 flex h-full min-w-0 flex-1 flex-col lg:ml-[20%]">
           <Navbar />
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {children}
