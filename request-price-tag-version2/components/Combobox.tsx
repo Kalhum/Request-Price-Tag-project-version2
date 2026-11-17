@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { cn } from "@/libs/utils";
@@ -67,6 +67,8 @@ export default function Combobox<T extends ComboboxValue>({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const generatedId = useId();
+  const listboxId = `${id ?? generatedId}-options`;
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,17 +86,6 @@ export default function Combobox<T extends ComboboxValue>({
   );
 
   useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setActiveIndex(0);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query]);
-
-  useEffect(() => {
     if (!open) return;
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -103,6 +94,8 @@ export default function Combobox<T extends ComboboxValue>({
         !containerRef.current.contains(event.target as Node)
       ) {
         setOpen(false);
+        setQuery("");
+        setActiveIndex(0);
       }
     };
 
@@ -114,6 +107,8 @@ export default function Combobox<T extends ComboboxValue>({
     if (option.disabled) return;
     onChange(option.value);
     setOpen(false);
+    setQuery("");
+    setActiveIndex(0);
     inputRef.current?.blur();
   };
 
@@ -155,11 +150,15 @@ export default function Combobox<T extends ComboboxValue>({
 
     if (event.key === "Escape") {
       setOpen(false);
+      setQuery("");
+      setActiveIndex(0);
       return;
     }
 
     if (event.key === "Tab") {
       setOpen(false);
+      setQuery("");
+      setActiveIndex(0);
     }
   };
 
@@ -179,12 +178,19 @@ export default function Combobox<T extends ComboboxValue>({
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
+          aria-controls={listboxId}
+          aria-activedescendant={
+            open && filteredOptions[activeIndex]
+              ? `${listboxId}-${activeIndex}`
+              : undefined
+          }
           disabled={disabled}
           value={open ? query : (selectedOption?.label ?? "")}
           placeholder={placeholder}
           onFocus={() => setOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);
+            setActiveIndex(0);
             setOpen(true);
           }}
           onKeyDown={handleKeyDown}
@@ -218,7 +224,11 @@ export default function Combobox<T extends ComboboxValue>({
       </div>
 
       {open && (
-        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+        <ul
+          id={listboxId}
+          role="listbox"
+          className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+        >
           {filteredOptions.length === 0 ? (
             <li className="px-3.5 py-2 text-sm text-slate-400">
               {noOptionsMessage}
@@ -231,6 +241,8 @@ export default function Combobox<T extends ComboboxValue>({
               return (
                 <li
                   key={option.value}
+                  id={`${listboxId}-${index}`}
+                  role="option"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => selectOption(option)}
                   onMouseEnter={() => setActiveIndex(index)}

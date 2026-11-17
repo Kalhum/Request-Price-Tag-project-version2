@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BranchProvider } from "../../components/BranchProvider";
 import Navbar from "../../components/navbar/page";
 import Sidebar from "../../components/sidebar/page";
 
@@ -8,13 +9,17 @@ export default function DashboardLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-surface">
-      <Sidebar />
+    <BranchProvider>
+      <div className="flex h-dvh overflow-hidden bg-surface">
+        <Sidebar />
 
-      <div className="min-w-0 flex-1">
-        <Navbar />
-        {children}
+        <div className="ml-[20%] flex h-full min-w-0 flex-1 flex-col">
+          <Navbar />
+          <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </BranchProvider>
   );
 }
