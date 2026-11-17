@@ -14,11 +14,11 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-  secondary: "bg-mute text-text-mute hover:bg-mute/80",
+  primary: "bg-primary text-white hover:bg-primary/90",
+  secondary: "bg-secondary text-white hover:bg-secondary/90",
   outline: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
   ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
-  danger: "bg-error text-white hover:bg-error/90",
+  danger: "bg-danger text-white hover:bg-danger/90",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

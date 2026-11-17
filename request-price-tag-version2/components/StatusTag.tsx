@@ -1,33 +1,56 @@
-import { CircleCheck, CircleX, ClockArrowDown } from 'lucide-react';
-import React from 'react'
-import type { BadgeContext } from '@/types/ui';
+import { CircleCheck, CircleX, ClockArrowDown } from "lucide-react";
+import type { ReactNode } from "react";
+import type { BadgeContext } from "@/types/ui";
 
 type Props = {
   label: string;
   status: BadgeContext;
   onClick?: () => void;
-}
+  size?: "sm" | "md";
+  className?: string;
+};
 
-const StatusTag: React.FC<Props> = ({ label, status, onClick }) => {
-  const statusClasses = {
-    success: "bg-success text-white",
-    error: "bg-error text-white",
-    warning: "bg-warning text-white",
-    mute: "bg-gray-100 text-gray-800",
+const statusClasses: Record<BadgeContext, string> = {
+  success: "border border-success/20 bg-success/10 text-success",
+  error: "border border-danger/20 bg-danger/10 text-danger",
+  warning: "border border-warning/20 bg-warning/10 text-warning",
+  mute: "border border-slate-200 bg-surface text-gray",
+};
+
+const statusIcons: Record<BadgeContext, ReactNode> = {
+  success: <CircleCheck aria-hidden="true" className="h-4 w-4 shrink-0" />,
+  error: <CircleX aria-hidden="true" className="h-4 w-4 shrink-0" />,
+  warning: <ClockArrowDown aria-hidden="true" className="h-4 w-4 shrink-0" />,
+  mute: null,
+};
+
+const sizeClasses = {
+  sm: "gap-1 rounded-full px-2 py-0.5 text-[10px]",
+  md: "gap-1.5 rounded-2xl px-4 py-2 text-sm md:px-7 md:py-3 md:text-xl",
+} as const;
+
+export default function StatusTag({
+  label,
+  status,
+  onClick,
+  size = "md",
+  className = "",
+}: Props) {
+  const classes = `inline-flex items-center font-semibold ${sizeClasses[size]} ${statusClasses[status]} ${className}`;
+  const content = (
+    <>
+      {statusIcons[status]}
+      {label}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={classes}>
+        {content}
+      </button>
+    );
   }
 
-  const statusIcon = {
-    success: <CircleCheck className="md:w-5 md:h-5 w-4 h-4 mr-1" />,
-    error: <CircleX className="md:w-5 md:h-5 w-4 h-4 mr-1" />,
-    warning: <ClockArrowDown className="md:w-5 md:h-5 w-4 h-4 mr-1" />,
-    mute: "",
-  }
-
-  return (
-    <button onClick={onClick} className={`inline-flex items-center justify-start md:px-7 md:py-3 px-4 py-2 rounded-2xl md:text-xl text-sm font-semibold ${statusClasses[status]}`}>
-       {statusIcon[status]} {label}
-    </button>
-  )
+  return <span className={classes}>{content}</span>;
 }
-
-export default StatusTag

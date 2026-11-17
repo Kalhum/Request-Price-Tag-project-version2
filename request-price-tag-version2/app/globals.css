@@ -12,6 +12,7 @@
 
   --color-primary: #00599e;
   --color-secondary: #008fe6;
+  --color-surface: #f1f2f7;
 
   --color-danger: #f52222;
   --color-danger-light: #fecdd3;
@@ -122,6 +123,11 @@
            text-white transition hover:opacity-90;
   }
 
+  .btn-success {
+    @apply rounded-button bg-success px-5 py-2.5
+           text-white transition hover:opacity-90;
+  }
+
   .btn-danger {
     @apply rounded-button bg-danger px-5 py-2.5
            text-white transition hover:opacity-90;
@@ -157,4 +163,58 @@
     );
   }
 
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-price-tag-sheet,
+  .print-price-tag-sheet * {
+    visibility: visible !important;
+  }
+
+  .print-modal-backdrop {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .print-modal-backdrop > section {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .print-price-tag-sheet {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 8mm !important;
+  }
+
+  .print-price-tag,
+  .print-price-tag-sheet > div:last-child {
+    break-inside: avoid;
+  }
+
+  .print-modal-backdrop > section > :not(.print-modal-controls):not(:has(.print-price-tag-sheet)),
+  .print-modal-controls {
+    display: none !important;
+  }
+
+  .print-modal-backdrop > section > div:has(.print-price-tag-sheet) {
+    display: block !important;
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+  }
 }

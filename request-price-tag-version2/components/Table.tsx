@@ -27,6 +27,9 @@ type Props<T> = {
   onRowClick?: (row: T, index: number) => void;
   rowClassName?: string | ((row: T, index: number) => string | undefined);
   className?: string;
+  tableClassName?: string;
+  headerClassName?: string;
+  headerCellClassName?: string;
 };
 
 const sizeClasses: Record<TableSize, string> = {
@@ -64,6 +67,9 @@ export default function Table<T>({
   onRowClick,
   rowClassName,
   className,
+  tableClassName,
+  headerClassName,
+  headerCellClassName,
 }: Props<T>) {
   const resolveCell = (
     column: TableColumn<T>,
@@ -92,9 +98,15 @@ export default function Table<T>({
         className,
       )}
     >
-      <table className={cn("w-full border-collapse", sizeClasses[size])}>
+      <table
+        className={cn("w-full border-collapse", sizeClasses[size], tableClassName)}
+      >
         <thead
-          className={cn("bg-slate-50", stickyHeader && "sticky top-0 z-10")}
+          className={cn(
+            "bg-slate-50",
+            stickyHeader && "sticky top-0 z-10",
+            headerClassName,
+          )}
         >
           <tr>
             {columns.map((column) => (
@@ -106,6 +118,7 @@ export default function Table<T>({
                   cellPaddingClasses[size],
                   alignClasses[column.align ?? "left"],
                   bordered && "border border-slate-200",
+                  headerCellClassName,
                   column.headerClassName,
                 )}
               >
