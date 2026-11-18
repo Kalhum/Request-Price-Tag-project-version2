@@ -188,7 +188,7 @@ function pageHtml(
   return `
 <section class="a4-sheet ${isLastPage ? 'last-page' : 'page-break'}">
   <!-- Header ของหน้า A4 -->
-  <header style="display:flex;justify-content:space-between;align-items:center;border-bottom:0.8px dashed #aaa;padding-bottom:1.5mm;font-size:8.5px;color:#555;line-height:1;">
+  <header style="display:flex;justify-content:space-between;align-items:center;border-bottom:0.8px dashed #aaa;padding-bottom:1mm;font-size:8px;color:#555;line-height:1;">
     <span style="font-weight:800;color:#000;">LAWSON 108 STANDARD PRICE TAG TEMPLATE (3x8 A4 SHEET)</span>
     <span>
       สาขา: <strong style="color:#000;">${branchId}</strong> |
@@ -198,12 +198,12 @@ function pageHtml(
   </header>
 
   <!-- Grid ป้ายราคา: 3 คอลัมน์ x 8 แถว -->
-  <div style="display:grid;grid-template-columns:repeat(3, 64mm);grid-auto-rows:34mm;row-gap:0.8mm;column-gap:3mm;justify-content:center;margin: 1mm 0;">
+  <div style="display:grid;grid-template-columns:repeat(3, 64mm);grid-auto-rows:34mm;row-gap:0.5mm;column-gap:3mm;justify-content:center;margin: 0.5mm 0;">
     ${tagCells}
   </div>
 
   <!-- Footer ของหน้า A4 -->
-  <footer style="display:flex;justify-content:space-between;align-items:center;border-top:0.8px solid #ddd;padding-top:1.5mm;font-size:8px;color:#777;line-height:1;">
+  <footer style="display:flex;justify-content:space-between;align-items:center;border-top:0.8px solid #ddd;padding-top:1mm;font-size:7.5px;color:#777;line-height:1;">
     <span>* ป้ายราคานี้พิมพ์จากระบบ Request Price Tag System</span>
     <span>แผ่นที่ <strong>${pageNumber}</strong> จากทั้งหมด <strong>${totalPages}</strong> แผ่น</span>
   </footer>
@@ -289,9 +289,9 @@ export function generatePrintHtml(opts: GeneratePrintHtmlOptions): string {
     /* ── A4 Sheet Container ── */
     .a4-sheet {
       width: 210mm;
-      height: 295mm; /* เผื่อ 2mm เพื่อไม่ให้เบราว์เซอร์ปัดเศษจนเกิดหน้าว่าง */
-      max-height: 295mm;
-      padding: 4mm 5mm 3mm 5mm;
+      height: 290mm; /* คำนวณให้พอดี ไม่เกินกรอบ A4 297mm ป้องกันล้นขอบหรือติดเศษหน้าถัดไป */
+      max-height: 290mm;
+      padding: 2.5mm 5mm 2mm 5mm;
       margin: 0 auto;
       box-sizing: border-box;
       background: #ffffff;
@@ -326,10 +326,12 @@ export function generatePrintHtml(opts: GeneratePrintHtmlOptions): string {
         padding: 0 !important;
       }
       .a4-sheet {
-        margin: 0 !important;
-        padding: 4mm 5mm 3mm 5mm !important;
+        margin: 0 auto !important;
+        padding: 2.5mm 5mm 2mm 5mm !important;
         width: 210mm !important;
-        height: 295mm !important;
+        height: 290mm !important;
+        max-height: 290mm !important;
+        overflow: hidden !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }

@@ -256,9 +256,15 @@ export default function PrintSheetModal({
   totalQuantity,
 }: PrintSheetModalProps) {
   // ⚠️ ALL hooks must be declared BEFORE any early return (React Rules of Hooks)
-  const [zoom, setZoom] = useState<number>(120);
+  const [zoom, setZoom] = useState<number>(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      return 65; // บนจอมือถือ เริ่มต้นย่อขนาดลงมาให้อยู่ในระยะสายตาพอดี
+    }
+    return 120;
+  });
   const [showCutGuides, setShowCutGuides] = useState<boolean>(true);
-  const [showSidebar, setShowSidebar] = useState<boolean>(true);
+  // เมื่อเข้าหน้าตัวอย่างปริ้น เริ่มต้นไม่ต้องแสดง sidebar ตัวอย่างหน้า เพื่อให้เห็นแผ่นป้ายราคาเต็มจอ
+  const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [activePageIndex, setActivePageIndex] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
   const [isFitWidth, setIsFitWidth] = useState<boolean>(false);
@@ -377,11 +383,15 @@ export default function PrintSheetModal({
         behavior: "smooth",
       });
     }
+    // บนหน้าจอมือถือ เมื่อผู้ใช้กดเลือกหน้าแล้ว ให้ปิด drawer sidebar อัตโนมัติ
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
   };
 
   return (
     <div
-      className="print-modal-backdrop fixed inset-0 z-[1000] flex flex-col bg-[#323639] font-sans text-slate-100 select-none"
+      className="print-modal-backdrop fixed inset-0 z-[2000] flex flex-col bg-[#323639] font-sans text-slate-100 select-none"
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "Escape") onClose();
@@ -392,30 +402,27 @@ export default function PrintSheetModal({
       }}
     >
       {/* =====================================================================
-          1. TOP TOOLBAR — Chrome PDF Viewer style
+          1. TOP TOOLBAR — Chrome PDF Viewer style (Responsive)
       ===================================================================== */}
-      <header className="print-modal-controls relative z-10 flex h-11 shrink-0 items-center justify-between border-b border-[#1a1b1e] bg-[#1f2022] px-3 text-sm shadow-md">
-        {/* Left: Hamburger + File Name */}
-        <div className="flex items-center gap-2.5">
+      <header className="print-modal-controls relative z-20 flex h-11 shrink-0 items-center justify-between border-b border-[#1a1b1e] bg-[#1f2022] px-2 text-sm shadow-md sm:px-3">
+        {/* Left: Hamburger + File Name + Page counter */}
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
           <button
             type="button"
             onClick={() => setShowSidebar((v) => !v)}
             className={`rounded p-1.5 transition ${
               showSidebar
-                ? "bg-white/15 text-white"
+                ? "bg-sky-500/20 text-sky-400"
                 : "text-slate-400 hover:bg-white/10 hover:text-white"
             }`}
             title="เปิด/ปิด แถบตัวอย่างหน้า"
           >
             <Menu className="h-4 w-4" />
           </button>
-          <span className="max-w-[180px] truncate text-xs text-slate-300 sm:max-w-[280px]">
+          <span className="hidden max-w-[150px] truncate text-xs text-slate-300 md:inline lg:max-w-[260px]">
             {fileName}
           </span>
-        </div>
 
-        {/* Center: Page input + Zoom + Rotate + Cut guides */}
-        <div className="flex items-center gap-1.5">
           {/* Page counter */}
           <div className="flex items-center gap-1 text-xs text-slate-400">
             <input
@@ -427,15 +434,16 @@ export default function PrintSheetModal({
               }}
               className="h-5.5 w-7 rounded border border-slate-600 bg-[#141516] text-center text-xs text-white outline-none focus:border-sky-500"
             />
-            <span>/ {totalPages}</span>
+            <span className="whitespace-nowrap text-[11px] text-slate-400">/ {totalPages}</span>
           </div>
+        </div>
 
-          <div className="mx-0.5 h-4 w-px bg-slate-700" />
-
+        {/* Center: Zoom + Rotate + Cut guides */}
+        <div className="flex items-center gap-1">
           {/* Zoom */}
           <button
             type="button"
-            onClick={() => { setIsFitWidth(false); setZoom((z) => Math.max(50, z - 10)); }}
+            onClick={() => { setIsFitWidth(false); setZoom((z) => Math.max(40, z - 10)); }}
             className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
             title="ย่อ"
           >
@@ -443,8 +451,11 @@ export default function PrintSheetModal({
           </button>
           <button
             type="button"
-            onClick={() => { setIsFitWidth(false); setZoom(100); }}
-            className="w-10 text-center text-xs text-slate-300 hover:text-white"
+            onClick={() => {
+              setIsFitWidth(false);
+              setZoom(typeof window !== "undefined" && window.innerWidth < 640 ? 65 : 100);
+            }}
+            className="w-9 text-center text-xs text-slate-300 hover:text-white sm:w-11"
           >
             {currentZoom}%
           </button>
@@ -457,23 +468,23 @@ export default function PrintSheetModal({
             <Plus className="h-3.5 w-3.5" />
           </button>
 
-          <div className="mx-0.5 h-4 w-px bg-slate-700" />
+          <div className="hidden h-4 w-px bg-slate-700 sm:mx-0.5 sm:block" />
 
-          {/* Fit width */}
+          {/* Fit width (แท็บเล็ตและคอม) */}
           <button
             type="button"
             onClick={() => setIsFitWidth((v) => !v)}
-            className={`rounded p-1.5 transition ${isFitWidth ? "bg-white/15 text-white" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}
+            className={`hidden rounded p-1.5 transition sm:inline-flex ${isFitWidth ? "bg-white/15 text-white" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}
             title="พอดีความกว้าง"
           >
             {isFitWidth ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
 
-          {/* Rotate */}
+          {/* Rotate (แท็บเล็ตและคอม) */}
           <button
             type="button"
             onClick={() => setRotation((r) => (r + 90) % 360)}
-            className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
+            className="hidden rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white sm:inline-flex"
             title="หมุน 90°"
           >
             <RotateCw className="h-3.5 w-3.5" />
@@ -493,12 +504,12 @@ export default function PrintSheetModal({
             title="เส้นประช่วยตัด"
           >
             <Scissors className="h-3 w-3" />
-            <span className="hidden lg:inline">เส้นประช่วยตัด</span>
+            <span className="hidden xl:inline">เส้นประช่วยตัด</span>
           </button>
         </div>
 
-        {/* Right: Download + Print + Close */}
-        <div className="flex items-center gap-1">
+        {/* Right: Download + Print + Close (เห็นชัดเจนเสมอ ไม่หลุดขอบ) */}
+        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
           <button
             type="button"
             onClick={handleDownload}
@@ -511,16 +522,17 @@ export default function PrintSheetModal({
             type="button"
             disabled={isLoading}
             onClick={handlePrint}
-            className="flex items-center gap-1 rounded bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sky-500 disabled:opacity-50"
+            className="flex items-center gap-1 rounded bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-500 disabled:opacity-50"
           >
             <Printer className="h-3.5 w-3.5" />
-            <span>พิมพ์</span>
+            <span className="hidden xs:inline">พิมพ์</span>
           </button>
           <div className="mx-0.5 h-4 w-px bg-slate-700" />
           <button
             type="button"
             onClick={onClose}
             className="rounded p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
+            title="ปิดหน้าต่าง"
           >
             <X className="h-4 w-4" />
           </button>
@@ -528,19 +540,38 @@ export default function PrintSheetModal({
       </header>
 
       {/* =====================================================================
-          2. BODY — Sidebar Thumbnails + PDF Canvas
+          2. BODY — Sidebar Thumbnails + PDF Canvas (Responsive Drawer)
       ===================================================================== */}
-      <div className="print-canvas-body flex flex-1 overflow-hidden">
+      <div className="print-canvas-body relative flex flex-1 overflow-hidden">
 
-        {/* ── SIDEBAR THUMBNAILS ── */}
+        {/* ── Backdrop เมื่อเปิด Sidebar บนจอมือถือ ── */}
+        {showSidebar && (
+          <div
+            onClick={() => setShowSidebar(false)}
+            className="fixed inset-0 z-20 bg-black/60 md:hidden"
+            aria-hidden="true"
+          />
+        )}
+
+        {/* ── SIDEBAR THUMBNAILS (Drawer บนมือถือ / Static ข้างซ้ายบนคอม) ── */}
         {showSidebar && (
           <aside
             ref={sidebarRef}
-            className="print-modal-controls flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-[#141516] bg-[#1f2022] pb-6 pt-3 shadow-inner"
+            className="print-modal-controls fixed inset-y-11 left-0 z-30 flex w-[210px] shrink-0 flex-col overflow-y-auto border-r border-[#141516] bg-[#1f2022] pb-6 pt-3 shadow-2xl md:static md:inset-auto md:w-[200px] md:shadow-inner"
           >
-            <p className="mb-2.5 px-3 text-[9px] font-semibold tracking-widest text-slate-500 uppercase">
-              ตัวอย่างหน้า ({totalPages})
-            </p>
+            <div className="mb-2.5 flex items-center justify-between px-3">
+              <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                ตัวอย่างหน้า ({totalPages})
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowSidebar(false)}
+                className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white md:hidden"
+                title="ปิดแถบตัวอย่าง"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <div className="flex flex-col items-center gap-4 px-2">
               {pages.map((p) => (
                 <div
@@ -562,7 +593,7 @@ export default function PrintSheetModal({
         <main
           ref={scrollContainerRef}
           onScroll={handleMainScroll}
-          className="relative flex-1 overflow-auto bg-[#525659] p-5 sm:p-8"
+          className="relative flex-1 overflow-auto bg-[#525659] p-2 sm:p-6 md:p-8"
         >
           <div
             className="mx-auto flex flex-col items-center gap-8 pb-16 origin-top transition-transform duration-150"
@@ -585,7 +616,7 @@ export default function PrintSheetModal({
                     width: "210mm",
                     height: "297mm",
                     maxHeight: "297mm",
-                    padding: "4mm 5mm 3mm 5mm",
+                    padding: "2.5mm 5mm 2mm 5mm",
                     boxSizing: "border-box",
                     overflow: "hidden",
                     display: "flex",
@@ -594,7 +625,7 @@ export default function PrintSheetModal({
                   }}
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between border-b border-dashed border-slate-300 pb-1 text-[8.5px] text-slate-500 leading-tight">
+                  <div className="flex items-center justify-between border-b border-dashed border-slate-300 pb-0.5 text-[8px] text-slate-500 leading-tight">
                     <span className="font-semibold text-black">
                       LAWSON 108 STANDARD PRICE TAG TEMPLATE (3x8 A4 SHEET)
                     </span>
@@ -612,10 +643,10 @@ export default function PrintSheetModal({
                       display: "grid",
                       gridTemplateColumns: "repeat(3, 64mm)",
                       gridAutoRows: "34mm",
-                      rowGap: "0.8mm",
+                      rowGap: "0.5mm",
                       columnGap: "3mm",
                       justifyContent: "center",
-                      margin: "1mm 0",
+                      margin: "0.5mm 0",
                     }}
                   >
                     {Array.from({ length: TAGS_PER_PAGE }, (_, index) => {
@@ -699,58 +730,60 @@ export default function PrintSheetModal({
       </div>
 
       {/* =====================================================================
-          3. BOTTOM STATUS BAR
+          3. BOTTOM STATUS BAR (Responsive)
       ===================================================================== */}
-      <footer className="print-modal-controls flex shrink-0 items-center justify-between border-t border-[#141516] bg-[#1f2022] px-4 py-1.5 text-xs text-slate-400">
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2">
-            เครื่องพิมพ์:
+      <footer className="print-modal-controls flex shrink-0 flex-col gap-2 border-t border-[#141516] bg-[#1f2022] px-3 py-2 text-xs text-slate-400 sm:px-4 md:flex-row md:items-center md:justify-between md:py-1.5">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+          <label className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[11px] sm:text-xs">เครื่องพิมพ์:</span>
             <select
               value={printer}
               onChange={(e) => setPrinter(e.target.value)}
-              className="h-6 rounded border border-slate-700 bg-[#141516] px-2 text-xs text-white outline-none focus:border-sky-500"
+              className="h-6 max-w-[210px] rounded border border-slate-700 bg-[#141516] px-1.5 text-xs text-white outline-none focus:border-sky-500 sm:max-w-none sm:px-2"
             >
               <option value="zebra">Zebra ZD420 (สติกเกอร์บาร์โค้ด) [แนะนำ]</option>
               <option value="default">เครื่องพิมพ์เริ่มต้น (A4)</option>
             </select>
           </label>
 
-          <label className="flex items-center gap-2">
-            จำนวน:
+          <label className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[11px] sm:text-xs">จำนวน:</span>
             <input
               type="number"
               min={1}
               max={99}
               value={copies}
               onChange={(e) => setCopies(Math.max(1, Number(e.target.value) || 1))}
-              className="h-6 w-12 rounded border border-slate-700 bg-[#141516] text-center text-xs text-white outline-none focus:border-sky-500"
+              className="h-6 w-11 rounded border border-slate-700 bg-[#141516] text-center text-xs text-white outline-none focus:border-sky-500 sm:w-12"
             />
-            ชุด
+            <span className="text-[11px] sm:text-xs">ชุด</span>
           </label>
         </div>
 
-        {errorMessage && <p role="alert" className="text-red-400">{errorMessage}</p>}
+        {errorMessage && <p role="alert" className="text-red-400 text-xs">{errorMessage}</p>}
 
-        <div className="flex items-center gap-3">
-          <div className="text-xs text-slate-300 mr-2">
-            รวมป้าย: <strong className="text-white">{totalTags}</strong> ป้าย ({totalPages} แผ่น)
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-1.5 md:border-t-0 md:pt-0 sm:gap-3">
+          <div className="text-[11px] text-slate-300 sm:text-xs md:mr-2">
+            รวม: <strong className="text-white">{totalTags}</strong> ป้าย ({totalPages} แผ่น)
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded bg-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/20 hover:text-white transition"
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 rounded bg-sky-600 px-3.5 py-1 text-xs font-semibold text-white shadow hover:bg-sky-500 disabled:opacity-50 transition"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>ยืนยันและสั่งพิมพ์ (Print)</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded bg-white/10 px-2.5 py-1 text-xs text-slate-300 hover:bg-white/20 hover:text-white transition"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1 text-xs font-semibold text-white shadow hover:bg-sky-500 disabled:opacity-50 transition"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              <span>ยืนยันและสั่งพิมพ์ (Print)</span>
+            </button>
+          </div>
         </div>
       </footer>
     </div>
