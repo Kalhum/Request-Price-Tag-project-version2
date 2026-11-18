@@ -152,6 +152,33 @@
   }
 
 
+  /* ---------- Scrollbar ---------- */
+
+  .scrollbar-visible {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-secondary) #f1f5f9;
+  }
+
+  .scrollbar-visible::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-visible::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-visible::-webkit-scrollbar-thumb {
+    background: var(--color-secondary);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
+
+
   /* ---------- Decorative Gradient ---------- */
 
   .bg-ball-gradient {

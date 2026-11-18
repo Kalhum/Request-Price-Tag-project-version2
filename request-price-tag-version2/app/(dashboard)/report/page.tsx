@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -20,7 +21,10 @@ import StatusTag from "@/components/StatusTag";
 import Footer from "../../../components/Footer";
 import Table from "@/components/Table";
 import type { TableColumn } from "@/components/Table";
+import PrintSheetModal from "@/components/price-tag/PrintSheetModal";
 import { useReportDocuments } from "@/hook/use-report-documents";
+import { reportService } from "@/services/report.service";
+import type { PrintingProduct, PrintingRequest } from "@/types/printing";
 import type {
   ReportDocumentItem,
   ReportDocumentStatus,
@@ -42,8 +46,36 @@ function statusLabel(status: ReportDocumentStatus) {
   return status === "printed" ? "พิมพ์แล้ว" : "ยังไม่ถูกสั่งพิมพ์";
 }
 
+const DEFAULT_REPORT_PRODUCTS: PrintingProduct[] = [
+  {
+    barcode: "29081165",
+    itemCode: "29081165",
+    name: "AIS ซิมซูเปอร์เน็ต",
+    english: "AIS Sim Super Net",
+    days: "438 D",
+    price: 50,
+  },
+  {
+    barcode: "88501230",
+    itemCode: "88501230",
+    name: "ชาเขียวอิชิตัน ไม่มีน้ำตาล",
+    english: "Ichitan Green Tea Zero Sugar",
+    days: "210 D",
+    price: 30,
+  },
+  {
+    barcode: "10830369",
+    itemCode: "10830369",
+    name: "โอวัลตินนมไมโลโปรตีน",
+    english: "Ovaltine Protein Milk",
+    days: "120 D",
+    price: 25,
+  },
+];
+
 export default function ReportPage() {
   const {
+    branchId,
     filter,
     updateFilter,
     resetFilters,
@@ -63,6 +95,11 @@ export default function ReportPage() {
     exportSelected: exportSelectedDocuments,
     reprintSelected,
   } = useReportDocuments();
+
+  // State สำหรับเปิด PrintSheetModal ให้เหมือนหน้า printtingRequest
+  const [activePrintRequest, setActivePrintRequest] = useState<PrintingRequest | null>(null);
+  const [printProducts, setPrintProducts] = useState<PrintingProduct[]>(DEFAULT_REPORT_PRODUCTS);
+
   const visibleDocuments = data?.items ?? [];
   const totalItems = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / filter.pageSize));
@@ -122,9 +159,95 @@ export default function ReportPage() {
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
+  /** สั่งพิมพ์ซ้ำกลุ่มเอกสารที่เลือก */
   async function createSelectedReprint() {
+    if (selectedIds.length === 0) return;
     const result = await reprintSelected(selectedIds);
-    if (result) setSelectedIds([]);
+    if (!result) return;
+
+    const selectedDocs = visibleDocuments.filter((d) => selectedIds.includes(d.id));
+    const totalLabels = selectedDocs.reduce((sum, d) => sum + d.labels, 0) || 1;
+    const firstDoc = selectedDocs[0];
+
+    let itemsForPrint: PrintingProduct[] = DEFAULT_REPORT_PRODUCTS;
+    try {
+      const detail = await reportService.getById(selectedIds[0], branchId);
+      if (detail && detail.items?.length > 0) {
+        itemsForPrint = detail.items.map((item) => ({
+          barcode: item.code,
+          english: item.englishName,
+          name: item.name,
+          price: item.price,
+          days: `${item.age} D`,
+          itemCode: item.code,
+        }));
+      }
+    } catch {
+      // ใช้ DEFAULT_REPORT_PRODUCTS
+    }
+
+    setPrintProducts(itemsForPrint);
+    setActivePrintRequest({
+      id: result.jobId,
+      documentNumber: result.documentNumbers[0] ?? firstDoc?.documentNumber ?? "Reprint_Doc",
+      quantity: totalLabels,
+      date: firstDoc?.requestDate ?? new Date().toISOString(),
+      branchId,
+    });
+  }
+
+  /** สั่งพิมพ์เอกสารเดี่ยวจากแถวในตาราง */
+  async function handlePrintSingleDocument(document: ReportDocumentSummary) {
+    let itemsForPrint: PrintingProduct[] = DEFAULT_REPORT_PRODUCTS;
+    try {
+      const detail = await reportService.getById(document.id, branchId);
+      if (detail && detail.items?.length > 0) {
+        itemsForPrint = detail.items.map((item) => ({
+          barcode: item.code,
+          english: item.englishName,
+          name: item.name,
+          price: item.price,
+          days: `${item.age} D`,
+          itemCode: item.code,
+        }));
+      }
+    } catch {
+      // fallback
+    }
+
+    setPrintProducts(itemsForPrint);
+    setActivePrintRequest({
+      id: document.id,
+      documentNumber: document.documentNumber,
+      quantity: document.labels,
+      date: document.requestDate,
+      branchId,
+    });
+  }
+
+  /** สั่งพิมพ์จาก Modal รายละเอียด */
+  function handlePrintActiveDetail() {
+    if (!activeDocument) return;
+    const itemsForPrint: PrintingProduct[] =
+      activeDocument.items.length > 0
+        ? activeDocument.items.map((item) => ({
+            barcode: item.code,
+            english: item.englishName,
+            name: item.name,
+            price: item.price,
+            days: `${item.age} D`,
+            itemCode: item.code,
+          }))
+        : DEFAULT_REPORT_PRODUCTS;
+
+    setPrintProducts(itemsForPrint);
+    setActivePrintRequest({
+      id: activeDocument.id,
+      documentNumber: activeDocument.documentNumber,
+      quantity: activeDocument.labels,
+      date: activeDocument.requestDate,
+      branchId: activeDocument.branchId,
+    });
   }
 
   const firstItem = totalItems ? (filter.page - 1) * filter.pageSize + 1 : 0;
@@ -150,6 +273,7 @@ export default function ReportPage() {
     { label: "ทั้งหมด (All Users)", value: "all" },
     ...(data?.users ?? []).map((user) => ({ label: user, value: user })),
   ];
+
   const documentColumns: TableColumn<ReportDocumentSummary>[] = [
     {
       key: "select",
@@ -159,7 +283,7 @@ export default function ReportPage() {
           aria-label="เลือกเอกสารทั้งหมดในหน้านี้"
           checked={allVisibleSelected}
           onChange={toggleVisibleDocuments}
-          className="h-4 w-4 accent-white"
+          className="h-4 w-4 accent-secondary"
         />
       ),
       align: "center",
@@ -269,24 +393,37 @@ export default function ReportPage() {
       ),
     },
     {
-      key: "details",
-      header: "รายละเอียด",
+      key: "actions",
+      header: "การจัดการ",
       align: "center",
-      width: "4rem",
-      headerClassName: "text-center",
-      className: "text-center",
+      width: "5.5rem",
+      headerClassName: "text-center whitespace-nowrap",
+      className: "text-center whitespace-nowrap",
       render: (document) => (
-        <Button
-          variant="outline"
-          size="sm"
-          aria-label={`ดูรายละเอียดเอกสาร ${document.documentNumber}`}
-          onClick={() => void openDetails(document.id)}
-          leftIcon={<Eye className="h-4 w-4" />}
-          className="border-slate-200 bg-white p-1 text-slate-700 hover:border-primary hover:bg-sky-50 hover:text-primary"
-        />
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={`ดูรายละเอียดเอกสาร ${document.documentNumber}`}
+            onClick={() => void openDetails(document.id)}
+            leftIcon={<Eye className="h-4 w-4" />}
+            className="border-slate-200 bg-white p-1 text-slate-700 hover:border-primary hover:bg-sky-50 hover:text-primary"
+            title="ดูรายละเอียด"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`พิมพ์ป้ายราคา ${document.documentNumber}`}
+            onClick={() => void handlePrintSingleDocument(document)}
+            leftIcon={<Printer className="h-4 w-4 text-primary" />}
+            className="p-1 text-primary hover:bg-sky-100"
+            title="พิมพ์ป้ายราคา (Print Sheet)"
+          />
+        </div>
       ),
     },
   ];
+
   const detailColumns: TableColumn<ReportDocumentItem>[] = [
     {
       key: "line",
@@ -356,17 +493,19 @@ export default function ReportPage() {
   ];
 
   return (
-    <div className="flex min-h-full flex-col gap-4 bg-surface p-4 sm:p-6">
-      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-5 py-4 text-white shadow-card sm:px-6">
-        <h1 className="text-heading font-bold sm:text-3xl">
+    <div className="flex min-h-full flex-col gap-3 bg-surface p-3 sm:p-4 md:p-6">
+      {/* ── Header Banner ── */}
+      <header className="rounded-card bg-gradient-to-r from-primary to-secondary px-4 py-4 text-white shadow-card sm:px-6 sm:py-5">
+        <h1 className="text-xl font-bold leading-tight sm:text-heading md:text-3xl">
           ส่วนของการดูรายงานความเคลื่อนไหว
         </h1>
-        <p className="mt-1 text-label text-warning-light">
+        <p className="mt-1 text-label text-warning-light sm:text-body">
           • &nbsp;*** การจัดลำดับ Tier list เป็นข้อมูลล่าสุดของเดือน 05/2026
           <span className="text-danger-light"> (ข้อมูลที่แสดงยังไม่เป็นทางการ)</span>
         </p>
       </header>
 
+      {/* ── Filters Section ── */}
       <section className="card-default grid gap-3 p-3 lg:grid-cols-[2fr_0.8fr_0.8fr_0.8fr_auto_auto] lg:items-end">
         <label className="block text-sm font-semibold text-gray">
           เลขที่เอกสาร / Request ID
@@ -438,6 +577,7 @@ export default function ReportPage() {
         </Button>
       </section>
 
+      {/* ── Bulk Actions Section ── */}
       <section className="card-default flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-semibold text-slate-700">การจัดการแบบกลุ่ม:</span>
@@ -484,6 +624,7 @@ export default function ReportPage() {
         )}
       </section>
 
+      {/* ── Documents Table Section ── */}
       <section className="card-default overflow-visible p-0">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -515,30 +656,32 @@ export default function ReportPage() {
           </label>
         </div>
 
-        <Table
-          columns={documentColumns}
-          data={error ? [] : visibleDocuments}
-          rowKey={(document) => document.id}
-          size="sm"
-          isLoading={loading && !error}
-          striped
-          emptyMessage={
-            error ? (
-              <span role="alert" className="text-danger">
-                {error}
-              </span>
-            ) : (
-              "ไม่พบเอกสารที่ตรงกับตัวกรอง"
-            )
-          }
-          className="rounded-none border-0"
-          tableClassName="min-w-[900px] text-xs sm:text-sm"
-          headerClassName="bg-primary text-white"
-          headerCellClassName="text-white"
-          rowClassName={(document) =>
-            document.status === "pending" ? "bg-amber-50/50" : undefined
-          }
-        />
+        <div className="overflow-x-auto">
+          <Table
+            columns={documentColumns}
+            data={error ? [] : visibleDocuments}
+            rowKey={(document) => document.id}
+            size="sm"
+            isLoading={loading && !error}
+            striped
+            emptyMessage={
+              error ? (
+                <span role="alert" className="text-danger">
+                  {error}
+                </span>
+              ) : (
+                "ไม่พบเอกสารที่ตรงกับตัวกรอง"
+              )
+            }
+            className="rounded-none border-0"
+            tableClassName="min-w-[900px] text-body"
+            headerClassName="bg-primary text-white"
+            headerCellClassName="text-white py-2.5"
+            rowClassName={(document) =>
+              document.status === "pending" ? "bg-amber-50/50" : undefined
+            }
+          />
+        </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-xs text-gray">
           <p>
@@ -591,7 +734,7 @@ export default function ReportPage() {
 
       <Footer />
 
-{/* modal print  */}
+      {/* ── Modal รายละเอียดคำร้องขอ ── */}
       {(activeDocument || detailLoading || detailError) && (
         <div
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/50 p-2 backdrop-blur-sm sm:p-4"
@@ -642,14 +785,26 @@ export default function ReportPage() {
                   </div>
                 )}
               </div>
-              <button
-                type="button"
-                aria-label="ปิดรายละเอียดเอกสาร"
-                onClick={closeDetails}
-                className="shrink-0 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {activeDocument && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    leftIcon={<Printer className="h-4 w-4" />}
+                    onClick={handlePrintActiveDetail}
+                  >
+                    พิมพ์ป้ายราคานี้
+                  </Button>
+                )}
+                <button
+                  type="button"
+                  aria-label="ปิดรายละเอียดเอกสาร"
+                  onClick={closeDetails}
+                  className="shrink-0 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </header>
             <div className="min-h-0 flex-1 overflow-auto px-4 py-4 sm:px-6">
               {detailLoading && (
@@ -684,19 +839,42 @@ export default function ReportPage() {
                 <span>
                   แสดง {activeDocument.items.length} รายการสินค้าในเอกสารนี้
                 </span>
-                <span className="font-semibold text-slate-700">
-                  รวม{" "}
-                  {activeDocument.items.reduce(
-                    (total, item) => total + item.quantity,
-                    0,
-                  )}{" "}
-                  ป้าย
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-slate-700">
+                    รวม{" "}
+                    {activeDocument.items.reduce(
+                      (total, item) => total + item.quantity,
+                      0,
+                    )}{" "}
+                    ป้าย
+                  </span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<Printer className="h-4 w-4" />}
+                    onClick={handlePrintActiveDetail}
+                  >
+                    พิมพ์ป้ายราคา
+                  </Button>
+                </div>
               </footer>
             )}
           </section>
         </div>
       )}
+
+      {/* ── Modal พรีวิวป้ายราคาและสั่งพิมพ์ (รูปแบบเดียวกับหน้า printtingRequest) ── */}
+      <PrintSheetModal
+        isOpen={Boolean(activePrintRequest)}
+        onClose={() => setActivePrintRequest(null)}
+        printingRequest={activePrintRequest}
+        products={printProducts}
+        branchId={branchId}
+        onConfirmPrint={async () => {
+          // สั่งพิมพ์ผ่าน Hidden iframe ภายใน PrintSheetModal ทันที
+        }}
+        totalQuantity={activePrintRequest?.quantity}
+      />
     </div>
   );
 }

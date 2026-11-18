@@ -192,6 +192,7 @@ export function useReportDocuments() {
   }, [branchId]);
 
   return {
+    branchId,
     filter,
     updateFilter,
     resetFilters,

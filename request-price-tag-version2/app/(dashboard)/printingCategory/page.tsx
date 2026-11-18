@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   FileUp,
   Info,
   Printer,
@@ -47,6 +49,15 @@ export default function PrintingCategoryPage() {
 
   // State สำหรับเปิด PrintSheetModal ให้เหมือนหน้า printtingRequest
   const [activePrintRequest, setActivePrintRequest] = useState<PrintingRequest | null>(null);
+
+  // Ref และฟังก์ชันเลื่อน scroll สำหรับรายการหมวดหมู่บนหน้าจอมือถือ
+  const categoryListRef = useRef<HTMLDivElement | null>(null);
+  const scrollCategoryUp = () => {
+    categoryListRef.current?.scrollBy({ top: -160, behavior: "smooth" });
+  };
+  const scrollCategoryDown = () => {
+    categoryListRef.current?.scrollBy({ top: 160, behavior: "smooth" });
+  };
 
   const effectivePreviewProducts = useMemo(() => {
     return previewProducts.map((p) => ({
@@ -230,42 +241,74 @@ export default function PrintingCategoryPage() {
           เลือกทั้งหมด (Select All Categories)
         </label>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {loading && (
-            <p className="col-span-full py-8 text-center text-sm text-gray">
-              กำลังโหลดหมวดหมู่สินค้า...
-            </p>
-          )}
-          {error && (
-            <p role="alert" className="col-span-full py-8 text-center text-sm text-danger">
-              {error}
-            </p>
-          )}
-          {!loading && !error && filteredCategories.map((category) => {
-            const checked = selectedCategories.includes(category.id);
-            return (
-              <label
-                key={category.id}
-                className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-input border px-3 py-2 text-sm font-semibold transition ${
-                  checked
-                    ? "border-primary bg-secondary text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-secondary hover:bg-sky-50"
-                }`}
+        {/* Responsive: แสดง ~5 หมวดหมู่บนหน้าจอมือถือ พร้อมแถบ scrollbar ชัดเจน และปุ่มกด scroll เลื่อนดู */}
+        <div className="relative mt-3">
+          <div
+            ref={categoryListRef}
+            className="scrollbar-visible max-h-[265px] overflow-y-auto pr-9 sm:max-h-none sm:overflow-visible sm:pr-0"
+          >
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {loading && (
+                <p className="col-span-full py-8 text-center text-sm text-gray">
+                  กำลังโหลดหมวดหมู่สินค้า...
+                </p>
+              )}
+              {error && (
+                <p role="alert" className="col-span-full py-8 text-center text-sm text-danger">
+                  {error}
+                </p>
+              )}
+              {!loading && !error && filteredCategories.map((category) => {
+                const checked = selectedCategories.includes(category.id);
+                return (
+                  <label
+                    key={category.id}
+                    className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-input border px-3 py-2 text-sm font-semibold transition ${
+                      checked
+                        ? "border-primary bg-secondary text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-secondary hover:bg-sky-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleCategory(category.id)}
+                      className="h-4 w-4 shrink-0 accent-primary"
+                    />
+                    {category.name}
+                  </label>
+                );
+              })}
+              {!loading && !error && filteredCategories.length === 0 && (
+                <p className="col-span-full py-8 text-center text-sm text-gray">
+                  ไม่พบหมวดหมู่ที่ค้นหา
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* ปุ่ม scroll เลื่อนขึ้น-ลง ทางขวาสำหรับหน้าจอมือถือ */}
+          {!loading && !error && filteredCategories.length > 5 && (
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-2 pr-0.5 sm:hidden">
+              <button
+                type="button"
+                onClick={scrollCategoryUp}
+                aria-label="เลื่อนขึ้น"
+                title="เลื่อนขึ้น"
+                className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 bg-white text-primary shadow-md transition hover:bg-slate-50 active:scale-95"
               >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleCategory(category.id)}
-                  className="h-4 w-4 shrink-0 accent-primary"
-                />
-                {category.name}
-              </label>
-            );
-          })}
-          {!loading && !error && filteredCategories.length === 0 && (
-            <p className="col-span-full py-8 text-center text-sm text-gray">
-              ไม่พบหมวดหมู่ที่ค้นหา
-            </p>
+                <ChevronUp className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={scrollCategoryDown}
+                aria-label="เลื่อนลง"
+                title="เลื่อนลง"
+                className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 bg-white text-primary shadow-md transition hover:bg-slate-50 active:scale-95"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </section>
