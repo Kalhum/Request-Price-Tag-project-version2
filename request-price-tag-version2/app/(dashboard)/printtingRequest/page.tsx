@@ -211,8 +211,8 @@ export default function PrinttingRequestPage() {
           size="sm"
           aria-label={`พิมพ์ ${request.documentNumber}`}
           onClick={() => printRequest(request)}
-          leftIcon={<Printer className="mx-auto h-5 w-5" />}
-          className="p-1.5 text-primary hover:bg-sky-100"
+          leftIcon={<Printer className="mx-auto h-8 w-8" />}
+          className="p-2 text-primary hover:bg-sky-100 transition-colors"
         />
       ),
     },
@@ -278,7 +278,7 @@ export default function PrinttingRequestPage() {
               onClick={printSelected}
               variant="secondary"
               size="sm"
-              leftIcon={<Printer className="h-4 w-4" />}
+              leftIcon={<Printer className="h-7 w-7" />}
             >
               พิมพ์รายการที่เลือก
             </Button>

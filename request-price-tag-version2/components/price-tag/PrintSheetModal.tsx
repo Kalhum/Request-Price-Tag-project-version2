@@ -522,10 +522,10 @@ export default function PrintSheetModal({
             type="button"
             disabled={isLoading}
             onClick={handlePrint}
-            className="flex items-center gap-1 rounded bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-500 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500 disabled:opacity-50"
           >
-            <Printer className="h-3.5 w-3.5" />
-            <span className="hidden xs:inline">พิมพ์</span>
+            <Printer className="h-4.5 w-4.5" />
+            <span>พิมพ์</span>
           </button>
           <div className="mx-0.5 h-4 w-px bg-slate-700" />
           <button
@@ -784,6 +784,22 @@ export default function PrintSheetModal({
               <span>ยืนยันและสั่งพิมพ์ (Print)</span>
             </button>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded bg-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/20 hover:text-white transition"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={handlePrint}
+            className="flex items-center gap-2 rounded bg-sky-600 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow hover:bg-sky-500 disabled:opacity-50 transition"
+          >
+            <Printer className="h-5 w-5" />
+            <span>ยืนยันและสั่งพิมพ์ (Print)</span>
+          </button>
         </div>
       </footer>
     </div>
