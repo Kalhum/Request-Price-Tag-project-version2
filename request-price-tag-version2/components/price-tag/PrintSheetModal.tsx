@@ -231,13 +231,13 @@ function PageThumbnail({
 
       {/* เลขหน้า */}
       <span
-        className={`text-[12px] transition-colors ${
+        className={`text-base font-medium transition-colors ${
           isActive
             ? "font-bold text-sky-400"
-            : "text-slate-400 group-hover:text-slate-200"
+            : "text-slate-300 group-hover:text-white"
         }`}
       >
-        {page.pageNumber}
+        หน้า {page.pageNumber}
       </span>
     </button>
   );
@@ -560,7 +560,7 @@ export default function PrintSheetModal({
             className="print-modal-controls fixed inset-y-11 left-0 z-30 flex w-[210px] shrink-0 flex-col overflow-y-auto border-r border-[#141516] bg-[#1f2022] pb-6 pt-3 shadow-2xl md:static md:inset-auto md:w-[200px] md:shadow-inner"
           >
             <div className="mb-2.5 flex items-center justify-between px-3">
-              <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              <p className="text-sm font-bold tracking-wider text-slate-200 uppercase">
                 ตัวอย่างหน้า ({totalPages})
               </p>
               <button

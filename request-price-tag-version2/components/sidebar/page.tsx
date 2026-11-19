@@ -96,14 +96,14 @@ export default function Sidebar() {
           width={210}
           height={210}
           priority
-          className="mx-auto h-[10rem] w-[10rem] object-contain"
+          className="mx-auto h-[10.5rem] w-[10.5rem] object-contain"
         />
 
-        <h1 className="mt-1 whitespace-nowrap text-[23px] font-normal leading-tight">
+        <h1 className="mt-1 whitespace-nowrap text-[26px] font-bold leading-tight">
           Request Price Tags
         </h1>
 
-        <p className="mt-1 whitespace-nowrap text-[15px] font-medium">
+        <p className="mt-1 whitespace-nowrap text-[17px] font-medium text-white/95">
           ขอป้ายราคาจากทางหลวง สวอว์สัน
         </p>
       </div>
@@ -112,71 +112,71 @@ export default function Sidebar() {
       <div
         className="
           rounded-[14px] border border-white/50
-          bg-white/65 p-[11px] text-primary shadow-md
+          bg-white/80 p-3.5 text-primary shadow-md
         "
       >
-        <div className="flex items-center gap-2">
-          <div className="relative flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[9px] bg-primary text-white">
-            <UserRound size={23} strokeWidth={2} />
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[11px] bg-primary text-white">
+            <UserRound size={26} strokeWidth={2} />
 
-            <span className="absolute -bottom-1 -right-1 h-[12px] w-[12px] rounded-full border-2 border-white bg-success" />
+            <span className="absolute -bottom-1 -right-1 h-[13px] w-[13px] rounded-full border-2 border-white bg-success" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold tracking-wide text-success">
+            <p className="text-[13px] font-bold tracking-wide text-success">
               WELCOME
             </p>
 
-            <p className="mt-0.5 whitespace-nowrap text-[12px] font-bold text-gray">
+            <p className="mt-0.5 whitespace-nowrap text-[16px] font-bold text-slate-800">
               คุณ op108
             </p>
           </div>
 
-          <span className="whitespace-nowrap text-[10px] text-gray">
+          <span className="whitespace-nowrap text-[13px] font-medium text-gray">
             Store Manager
           </span>
         </div>
 
-        <div className="my-2.5 border-t border-white/50" />
+        <div className="my-3 border-t border-white/60" />
 
         <button
           type="button"
           className="
-            flex w-full items-center justify-center gap-1.5
-            rounded-[7px] bg-white px-2 py-1.5
-            text-[11px] font-medium text-primary
-            transition hover:bg-surface
+            flex w-full items-center justify-center gap-2
+            rounded-[9px] bg-white px-3 py-2.5
+            text-[14px] font-semibold text-primary
+            shadow-sm transition hover:bg-surface
           "
         >
-          <KeyRound size={14} />
+          <KeyRound size={16} />
           เปลี่ยนรหัสผ่าน (Change Password)
         </button>
       </div>
 
       {/* SELECTED BRANCH */}
-      <section className="mt-7">
-        <h2 className="mb-2 text-[16px] font-bold">
+      <section className="mt-8">
+        <h2 className="mb-2.5 text-[18px] font-bold">
           คุณกำลังเลือกสาขา
         </h2>
 
         <div
           className="
-            mx-1 flex min-h-[37px] items-center justify-center gap-2
-            rounded-[9px] border border-success-light
-            bg-success px-2 py-2
-            text-[12px] font-bold text-white
-            shadow-card
+            mx-1 flex min-h-[46px] items-center justify-center gap-2.5
+            rounded-[11px] border border-success-light
+            bg-success px-3.5 py-2.5
+            text-[16px] font-bold text-white
+            shadow-card text-center
           "
         >
-          <CheckCircle2 size={15} className="shrink-0 text-success-light" />
-          {isReady ? branchName : "กำลังโหลดสาขา..."}
+          <CheckCircle2 size={19} className="shrink-0 text-success-light" />
+          <span>{isReady ? branchName : "กำลังโหลดสาขา..."}</span>
         </div>
       </section>
 
       {/* TOTAL BRANCH */}
-      <section className="mt-12 px-4">
-        <h2 className="text-sm font-bold">เปลี่ยนสาขาที่ใช้งาน</h2>
-        <p className="mb-2 mt-1 text-xs text-white/80">
+      <section className="mt-10 px-2 sm:px-4">
+        <h2 className="text-[18px] font-bold">เปลี่ยนสาขาที่ใช้งาน</h2>
+        <p className="mb-2.5 mt-1 text-[14px] text-white/90">
           กดปุ่มด้านล่างเพื่อค้นหาและเลือกสาขา
         </p>
         <button
@@ -187,9 +187,9 @@ export default function Sidebar() {
           }}
           aria-haspopup="dialog"
           className="
-            flex h-[44px] w-full items-center justify-center
-            rounded-[12px] bg-primary
-            text-[15px] font-bold text-white shadow-md
+            flex h-[50px] w-full items-center justify-center
+            rounded-[14px] bg-primary
+            text-[17px] font-bold text-white shadow-md
             transition hover:opacity-90
           "
         >
@@ -198,14 +198,14 @@ export default function Sidebar() {
       </section>
 
       {/* LOGOUT */}
-      <div className="mt-auto px-4 pb-5 pt-10">
+      <div className="mt-auto px-2 sm:px-4 pb-5 pt-8">
         <Button
           onClick={handleLogout}
           variant="danger"
           size="md"
           fullWidth
-          leftIcon={<LogOut size={18} />}
-          className="h-[43px] rounded-[11px] text-[15px] font-bold shadow-md active:scale-[0.98]"
+          leftIcon={<LogOut size={20} />}
+          className="h-[48px] rounded-[12px] text-[17px] font-bold shadow-md active:scale-[0.98]"
         >
           ออกจากระบบ
         </Button>
